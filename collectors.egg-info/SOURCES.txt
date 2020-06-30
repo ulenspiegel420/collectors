@@ -1,0 +1,10 @@
+setup.py
+collectors/__init__.py
+collectors/collector.py
+collectors/core.py
+collectors/hash_collector.py
+collectors/stack_collector.py
+collectors.egg-info/PKG-INFO
+collectors.egg-info/SOURCES.txt
+collectors.egg-info/dependency_links.txt
+collectors.egg-info/top_level.txt
