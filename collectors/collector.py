@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class Collector:
     def __init__(self, path, data, autoload: bool = False):
-        self._path: str = path
+        self._path = path
         self.__problem_stack = []
         self.__stack = []
         self._collector = data
@@ -27,8 +27,6 @@ class Collector:
         self._loaded_data = None
 
         if autoload:
-            if not os.path.exists(self._path):
-                open(self._path, 'a').close()
             self.load()
 
     def to_stack(self, status: bool, data, key=None, error=None):
@@ -39,12 +37,13 @@ class Collector:
         self.__problem_stack.append((source, problem))
 
     def save(self):
-        logger.debug(f"Saving from the collector to {self._path}")
+        logger.debug("Saving from the collector to " + self._path)
         pickle.dump(self._collector, open(self._path, 'wb'))
 
     def load(self):
-        logger.debug(f"Loading to the collector from {self._path}")
-        self._collector = pickle.load(open(self._path, 'rb'))
+        if os.path.exists(self._path):
+            self._collector = pickle.load(open(self._path, 'rb'))
+            logger.debug("Loaded data from " + self._path)
 
     def select_from_stack(self, key=None, state: bool = True, errors: bool = False) -> []:
         if key is None:
@@ -72,7 +71,7 @@ class Collector:
 
         self._current_key = id if id is not None else uuid.uuid4().hex
         if error is not None:
-            self._current_errors.append(error)
+            self._current_errors.extend(error)
         self._current_data = data
 
     @abstractmethod

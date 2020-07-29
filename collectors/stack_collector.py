@@ -1,7 +1,9 @@
+from abc import ABC
+
 from collectors.collector import Collector
 
 
-class StackCollector(Collector):
+class StackCollector(Collector, ABC):
     def __init__(self, path: str, data=None, autoload: bool = False):
         super().__init__(path, data, autoload)
         if self._collector is None: self._collector = []
@@ -22,17 +24,9 @@ class StackCollector(Collector):
         self._error_append += other._error_append
         return self
 
-    # def load(self):
-    #     super().load()
-    #     if self._loaded_data is not None and isinstance(self._loaded_data, list):
-    #         self._collector = self._loaded_data
-
     def append(self, id=None, data=None, error=None):
         super().append(id, data, error)
         self._collector.append((self._current_key, self._current_data, self._current_errors))
-
-    def remove(self, bs_id, data):
-        pass
 
     def get_error_count(self, id) -> int or None:
         item = [i for i in self._collector if i[0] == id]
@@ -58,4 +52,4 @@ class StackCollector(Collector):
     @property
     def keys(self):
         result = [i[0] for i in self._collector]
-        return
+        return result
