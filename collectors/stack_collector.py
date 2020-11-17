@@ -45,9 +45,8 @@ class StackCollector(Collector, ABC):
         return result
 
     @property
-    def data(self) -> []:
-        result = [i[1] for i in self._collector]
-        return result
+    def data(self):
+        return self._collector
 
     @property
     def keys(self):
