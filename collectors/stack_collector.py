@@ -19,13 +19,13 @@ class StackCollector(Collector, ABC):
             raise StopIteration
 
     def __add__(self, other):
-        self._collector.extend(other._collector)
+        self._collector.extend(other._internal_collector)
         self._success_append += other._success_append
         self._error_append += other._error_append
         return self
 
-    def append(self, id=None, data=None, error=None):
-        super().append(id, data, error)
+    def append(self, item_id=None, data=None, error=None):
+        super().append(item_id, data, error)
         self._collector.append((self._current_key, self._current_data, self._current_errors))
 
     def get_error_count(self, id) -> int or None:

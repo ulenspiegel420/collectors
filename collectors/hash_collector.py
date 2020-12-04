@@ -1,10 +1,32 @@
+import uuid
+import logging
+import json
 from collectors.collector import Collector
 
 
+logging.basicConfig()
+logger = logging.getLogger()
+
+
 class HashCollector(Collector):
-    def __init__(self, path=None, data=None, autoload: bool = False):
-        collector_data = data if data is not None else {}
-        super().__init__(path, collector_data, autoload)
+    def save_as_binary(self):
+        pass
+
+    def load_from_binary(self):
+        pass
+
+    @property
+    def count(self):
+        pass
+
+    def __init__(self, data=None, path=None):
+        super(HashCollector, self).__init__(path)
+        self._internal_collector = {}
+        if data is not None:
+            if not isinstance(data, dict):
+                raise ValueError("Data must be dict, but one have {} type".format(str(type(data))))
+            for k, d in data.items():
+                self.append(d, k)
 
     def __iter__(self):
         return self
@@ -12,31 +34,40 @@ class HashCollector(Collector):
     def __next__(self):
         if self._counter < self.count:
             self._counter += 1
-            return next(self._collector)
+            return next(self._internal_collector)
         else:
             raise StopIteration
 
-    def append(self, key=None, data=None, error=None):
-        super().append(key, data, error)
-        if key in self._collector.keys():
-            self._collector[self._current_key] = (self._current_data, self._current_errors)
+    def append(self, data, key=None):
+        super().append(data)
+        if key in self._internal_collector.keys():
+            if key is not None:
+                current_key = key
+                current_data = self.get_data(key)
+            else:
+                current_key = uuid.uuid4().hex
+                current_data = []
+
+            self._internal_collector[current_key] = [current_data + data, self._meta]
         else:
-            self._collector.setdefault(key, [self._current_data, self._current_errors])
+            self._internal_collector.setdefault(key, [data, self._meta])
 
     def remove(self, key):
-        if key in self._collector.keys():
-            del self._collector[key]
+        if key in self._internal_collector.keys():
+            del self._internal_collector[key]
 
     def get_keys(self):
-        if self._collector is not None:
-            return list(self._collector.keys())
+        if self._internal_collector is not None:
+            return list(self._internal_collector.keys())
 
     def get_error_count(self, key):
-        return len(self._collector.get(key)[1])
+        return len(self._internal_collector.get(key)[1])
 
     def get_data(self, key):
-        data = self._collector.get(key)
-        return data
+        if len(self._internal_collector) > 0:
+            if key in self._internal_collector:
+                data = self._internal_collector.get(key)[0]
+                return data
 
     def get_status(self, key) -> bool:
         error_len = self.get_error_count(key)
@@ -45,20 +76,33 @@ class HashCollector(Collector):
         return False
 
     def get_errors(self, key) -> []:
-        values = self._collector.get(key)
+        values = self._internal_collector.get(key)
         if values is None:
             return []
         errors = values[1]
         return errors
 
     def select_by_status(self, status: bool) -> {}:
-        result = {k: v for k, v in self._collector.items() if self.get_status(k) is status}
+        result = {k: v for k, v in self._internal_collector.items() if self.get_status(k) is status}
         return result
+
+    def load_from_json(self, hook=None):
+        data = super().load_from_json(hook)
+        if data is not None:
+            if not isinstance(data, dict):
+                logger.warning('Bad content in json file')
+            else:
+                self._internal_collector = data
+                self._is_data_loaded = True
+
+    def save_as_json(self, encoder=None):
+        with open(self._path, 'w') as handler:
+            json.dump(self._internal_collector, handler, cls=encoder, sort_keys=True, indent=4)
 
     @property
     def data(self) -> []:
         result = []
-        for k, v in self._collector.items():
+        for k, v in self._internal_collector.items():
             result.append((k, v[0]))
         return result
 

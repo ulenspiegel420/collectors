@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='collectors',
-    version='1.1',
+    version='1.2',
     packages=['collectors'],
     url='',
     license='',

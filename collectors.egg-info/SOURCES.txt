@@ -3,7 +3,6 @@ collectors/__init__.py
 collectors/collector.py
 collectors/core.py
 collectors/hash_collector.py
-collectors/problem_collector.py
 collectors/stack_collector.py
 collectors.egg-info/PKG-INFO
 collectors.egg-info/SOURCES.txt
